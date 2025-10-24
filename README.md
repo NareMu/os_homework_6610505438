@@ -53,10 +53,10 @@ For parallel homework run by use open mpi
 
 In Mac/Linux
 ```bash
-mpirun -n {number of process} python ./1_parallel_6610505438/parallel.py
+mpirun -np {number of process} python ./1_parallel_6610505438/parallel.py {number to factorize}
 ```
 
 In Window
 ```bash
-mpiexec -n {number of process} python ./1_parallel_6610505438/parallel.py
+mpiexec -np {number of process} python ./1_parallel_6610505438/parallel.py {number to factorize}
 ```
