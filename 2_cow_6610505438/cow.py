@@ -18,7 +18,7 @@ def smaps_rollup(pid: int) -> dict[str,int]:
                 if ":" in line and "kB" in line:
                     key, val = line.split(":", 1)
                     num = val.strip().split()[0]
-                    out[key.strip()] = int(num) * 1024  # to bytes
+                    out[key.strip()] = int(num) * 1024 
     except FileNotFoundError as e:
         print(f"Error: {e}")
     return out 
@@ -66,7 +66,6 @@ if __name__ == "__main__":
         sys.exit(1)
     
     try:
-            # sys.argv stores arguments as strings, so we must convert them
             alloc_size = int(sys.argv[1])
             modify_ratio = float(sys.argv[2])
 
@@ -74,8 +73,7 @@ if __name__ == "__main__":
             if not 0.0 <= modify_ratio <= 1.0:
                 print(f"Error: modify_size_ratio must be between 0.0 and 1.0. Got: {modify_ratio}")
                 sys.exit(1)
-                
-            # Call the main function
+
             cow_simulate(alloc_size_mb=alloc_size, modify_size_ratio=modify_ratio)
 
     except ValueError:
