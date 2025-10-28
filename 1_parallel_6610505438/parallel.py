@@ -254,7 +254,7 @@ def master_main_serial(argv: List[str], comm: MPI.Comm) -> None:
     assert rank == 0, f"rank: {rank} can't be master"
 
     if len(argv) != 2:
-        print("Usage: mpi_qs.py <number to factor>")
+        print("Usage: parallel.py <number to factor>")
         return
 
     params = init_params(argv[1])
@@ -335,7 +335,7 @@ def master_main(argv: List[str], comm: MPI.Comm) -> None:
     assert rank == 0 ,f"rank: {rank} can't be master"
 
     if len(argv) != 2:
-        print("Usage: mpi_qs.py <number to factor>")
+        print("Usage: parallel.py <number to factor>")
         return
 
     params = init_params(argv[1])
