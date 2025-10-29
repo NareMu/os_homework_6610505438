@@ -28,6 +28,7 @@ SIEVE_LENGTH = 500_000
 
 # -------------------------- Math -------------------
 def tonelli_shanks(n: int, p: int) -> int:
+    """perform Tonelli-Shanks algorithm from given number(n) and prime(p)"""
     assert p > 2 ,f"tonelli_shanks expected odd prime but {p} given"
     n %= p
     if n == 0:
@@ -79,6 +80,7 @@ class QSParams:
     M: int
 
 def init_params(number_str: str) -> QSParams:
+    """ initialize a needed params from given number in string and return in QSParams"""
     x = len(number_str)
     if x < 9:
         raise ValueError("Number too small for QS")
@@ -92,6 +94,7 @@ def init_params(number_str: str) -> QSParams:
     return QSParams(N=N, factor_base_size=fbs, T=T, M=M)
 
 def compute_factor_base(params: QSParams) -> Tuple[List[FBElement], int]:
+    """form a valid factor base of given number"""
     N = params.N
     factor_base_size = params.factor_base_size
     fb: List[FBElement] = [FBElement(p=1, logp=0, sqrtn1=0, sqrtn2=0)]  
@@ -111,13 +114,15 @@ def compute_factor_base(params: QSParams) -> Tuple[List[FBElement], int]:
 
 # -------------------------- Polynomial selection --------------------------------
 
-def get_next_D(N: int, D: int) -> int:
+def get_next_D(N: int, prev_D: int) -> int:
+    """find next valid D that use for form a polynomial from a given N and previous D """
     while True:
-        D = nt.nextprime(D)
+        D = nt.nextprime(prev_D)
         if D % 4 == 3 and legendre_symbol(N, D) == 1:
             return D
 
 def generate_polynomial(N: int, D: int) -> Tuple[int, int, int]:
+    """find A,B,C that use for form a polynomial from a given N and D"""
     A = D * D
     h1 = pow(N, (D + 1) // 4, D)
     tmp = (N - (h1 * h1)) // D
@@ -128,6 +133,7 @@ def generate_polynomial(N: int, D: int) -> Tuple[int, int, int]:
     return A, B, C
 
 def initialize_polynomial(A: int, B: int, fb: List[FBElement]) -> None:
+    """find valid root of each factor base"""
     for i in range(1, len(fb)):
         p = fb[i].p
         if (2 * A) % p == 0:
@@ -143,10 +149,16 @@ def initialize_polynomial(A: int, B: int, fb: List[FBElement]) -> None:
 # -------------------------- Sieve & trial division --------------------------------
 
 def poly_val(x: int, A: int, B: int, C: int) -> int:
+    """calculate a value of polynomial from a given x, A, B, C"""
     return A * x * x + 2 * B * x + C
 
 def sieve_interval(A: int, B: int, C: int, fb: List[FBElement], threshold_bits: float,
                    start_offset: int, length: int) -> List[Tuple[int, int, int]]:
+    """Find valid candidate for f(x) then return in a list of tuple that contain(vec,axb,afx) which 
+    vec - a vector of power of prime factor in GF(2)
+    axb - (ax+b)^2 
+    afx- Af(x)
+    """
     logfxs = np.zeros(length, dtype=float)
     # precompute in log to cutoff some impossible fx for reduce large number dividing
     for i in range(1, len(fb)):
@@ -188,6 +200,7 @@ def sieve_interval(A: int, B: int, C: int, fb: List[FBElement], threshold_bits: 
 # -------------------------- Gaussian elimination over GF(2) ----------------------
 
 def gauss_eliminate(ncols: int, rows: List[int]) -> List[int]:
+    """perform gaussian elimination in GF(2) from a given metrix via bitwise operation and return a result metrix in form of list of int (each int refer to a list of bit)"""
     augmented = []
     nrow = len(rows)
     # form a augmented matrix [A|I] 
@@ -218,6 +231,7 @@ def gauss_eliminate(ncols: int, rows: List[int]) -> List[int]:
     return augmented
 
 def back_tracking(axb: np.ndarray, afx: np.ndarray, augmented: np.ndarray, ncol: int, nrow: int, N:int) -> Optional[Tuple[int, int]]:
+    """use a result from gaussian elimination to find a valid answers"""
     # masking for get only A part from [A|I]
     A_mask = ((1 << (ncol-nrow)) - 1) << nrow
     for row in augmented:
@@ -244,6 +258,7 @@ def back_tracking(axb: np.ndarray, afx: np.ndarray, augmented: np.ndarray, ncol:
 
 # -------------------------- Master/Slave protocol --------------------------------
 def master_main_serial(argv: List[str], comm: MPI.Comm) -> None:
+    """perform a qs algorithm with non-parallel method"""
     rank = comm.Get_rank()
     assert rank == 0, f"rank: {rank} can't be master"
 
@@ -325,6 +340,7 @@ def master_main_serial(argv: List[str], comm: MPI.Comm) -> None:
     print(f"Total running time: {time.time() - t0} s")
 
 def master_main(argv: List[str], comm: MPI.Comm) -> None:
+    """perform a qs algorithm with parallel method, this function will perform as a master(process0)"""
     size = comm.Get_size()
     rank = comm.Get_rank()
     assert rank == 0 ,f"rank: {rank} can't be master"
@@ -424,6 +440,7 @@ def master_main(argv: List[str], comm: MPI.Comm) -> None:
     print(f"Total running time: {time.time() - t0} s")
 
 def slave_main(comm: MPI.Comm) -> None:
+    """perform a qs algorithm with parallel method, this function will perform as a slave(all process exept process 0)"""
     rank = comm.Get_rank()
 
     print(f"rank: {rank} start process",flush = True)
@@ -472,6 +489,7 @@ def main():
     rank = comm.Get_rank()
     size = comm.Get_size()
 
+    # assign work to each process following their rank and total size of process
     if rank == 0 and size > 1:
         master_main(sys.argv, comm)
     elif rank == 0:
