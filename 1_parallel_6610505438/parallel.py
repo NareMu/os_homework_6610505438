@@ -118,18 +118,12 @@ def get_next_D(N: int, D: int) -> int:
             return D
 
 def generate_polynomial(N: int, D: int) -> Tuple[int, int, int]:
-    # A = D^2
     A = D * D
-    # h1 = N^((D+1)/4) mod D
     h1 = pow(N, (D + 1) // 4, D)
-    # tmp = (N - h1^2) // D  
     tmp = (N - (h1 * h1)) // D
-    # h2 = (2*h1)^(-1) * tmp  (mod D)
-    inv_2h1 = pow((2 * h1) % D, -1, D)
+    inv_2h1 = pow((2 * h1) , -1, D)
     h2 = (inv_2h1 * (tmp % D)) % D
-    # B = (h1 + h2*D) mod A
     B = (h1 + h2 * D) % A
-    # C = ((B^2 - N)/A)
     C =  (B * B - N) // A
     return A, B, C
 
@@ -313,13 +307,14 @@ def master_main_serial(argv: List[str], comm: MPI.Comm) -> None:
     print("Performing Gauss elimination ...")
     t1 = time.time()
 
-    # perform a gauss elimination to find some combination that prod(Af(x)) is can write in form prod of factor_base with even power
+    # perform a gauss elimination to find some combination that prod(Af(xi)) can write in form prod of factor_base with even power
     augmented = gauss_eliminate(factor_base_size,list(exponent_matrix[:needed]))
     t2 = time.time()
     print(f"Done ({t2 - t1} s)\n")
 
-    #nrow = len(augmented) = needed,ncol = factor_base_size + nrow
-    result = back_tracking(axb, afx, augmented, factor_base_size + needed, needed, N)
+    nrow = needed
+    ncol = factor_base_size + nrow
+    result = back_tracking(axb, afx, augmented, ncol, nrow, N)
 
     if result is None:
         print("Unable to find a non-trivial factorization from dependencies. Try more relations or adjust params.")
@@ -414,8 +409,10 @@ def master_main(argv: List[str], comm: MPI.Comm) -> None:
     augmented = gauss_eliminate(factor_base_size, list(exponent_matrix[:needed]))
     t2 = time.time()
     print(f"Done ({t2 - t1} s)\n")
-    #nrow = len(augmented) = needed,ncol = factor_base_size + nrow
-    result = back_tracking(axb, afx, augmented, factor_base_size + needed, needed, N)
+    
+    nrow = needed
+    ncol = factor_base_size + nrow
+    result = back_tracking(axb, afx, augmented, ncol, nrow, N)
 
     if result is None:
         print("Unable to find a non-trivial factorization from dependencies. Try more relations or adjust params.")

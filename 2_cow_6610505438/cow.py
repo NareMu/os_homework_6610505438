@@ -60,7 +60,7 @@ def cow_simulate(alloc_size_mb: int, modify_size_ratio: float ) -> None:
         os.waitpid(pid, 0)
         print("[Parent] child already terminate")
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 3:
         print(f"Usage: python cow.py <alloc_size_mb> <modify_size_ratio>")
         sys.exit(1)
@@ -82,3 +82,5 @@ if __name__ == "__main__":
         print(f"  <modify_size_ratio> must be a float")
         sys.exit(1)
 
+if __name__ == "__main__":
+    main()
