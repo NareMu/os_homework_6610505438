@@ -1,7 +1,8 @@
 # OS-Home-work
+>[!NOTE]
 > This project is developed under the **01204332 Operating System** course of **Department of Computer Engineering**, **Faculity of Engineering**, **Kasetsart University**.
 
-> This project for **educational purpose** only.
+> Developed by Nakharet Mueangphakdee (6610505438)
 
 ## Directory Structure
 ```bash
