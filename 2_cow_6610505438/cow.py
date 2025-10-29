@@ -4,12 +4,14 @@ import os
 import sys
 
 def get_page_size() -> int:
+    """try to get page size from config if not found will set default as 4096"""
     try:
         return os.sysconf('SC_PAGE_SIZE') 
     except:
         return 4096
 
 def smaps_rollup(pid: int) -> dict[str,int]:
+    """read data of given pid from smaps_roolup and return it in dict of name and value"""
     path = f"/proc/{pid}/smaps_rollup"
     out = {}
     try:
@@ -24,16 +26,20 @@ def smaps_rollup(pid: int) -> dict[str,int]:
     return out 
 
 def cow_simulate(alloc_size_mb: int, modify_size_ratio: float ) -> None:
+    """Simulate the COW by reserve memory equal a given alloc_size_mb and try to modify equal to given modify_size_ratio"""
     page_size = get_page_size() 
     n_byte = alloc_size_mb * 2**20
+    # reserve a array with random value
     arr = np.random.randint(0, 256, size = n_byte, dtype = np.uint8)
 
     pid = os.fork()
 
     if pid == 0:
+        # get child and parent pid
         child_pid = os.getpid()
         parent_pid = os.getppid()
 
+        # monitoring by data in smaps_rollup
         print("RSS before child edit the data")
         parent_info = smaps_rollup(parent_pid)
         child_info = smaps_rollup(child_pid)
@@ -41,13 +47,14 @@ def cow_simulate(alloc_size_mb: int, modify_size_ratio: float ) -> None:
         print(f"[Child] child process's shared = {(child_info["Shared_Clean"]+child_info["Shared_Dirty"])/2**20} MiB parent process's shared = {(parent_info["Shared_Clean"]+parent_info["Shared_Dirty"])/2**20} MiB")
     
         time.sleep(0.5)
+        # flip bit in a reserve array
         n_modify = int(n_byte * modify_size_ratio)
-
         for i in range(0, n_modify, page_size):
             arr[i] = (arr[i]) ^ 255
         
 
         time.sleep(0.5)
+        # monitoring by data in smaps_rollup
         print("RSS after child edit the data")
         parent_info = smaps_rollup(parent_pid)
         child_info = smaps_rollup(child_pid)
@@ -69,7 +76,6 @@ def main():
             alloc_size = int(sys.argv[1])
             modify_ratio = float(sys.argv[2])
 
-            # Validate ratio
             if not 0.0 <= modify_ratio <= 1.0:
                 print(f"Error: modify_size_ratio must be between 0.0 and 1.0. Got: {modify_ratio}")
                 sys.exit(1)
