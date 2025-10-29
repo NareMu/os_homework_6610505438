@@ -409,7 +409,7 @@ def master_main(argv: List[str], comm: MPI.Comm) -> None:
     augmented = gauss_eliminate(factor_base_size, list(exponent_matrix[:needed]))
     t2 = time.time()
     print(f"Done ({t2 - t1} s)\n")
-    
+
     nrow = needed
     ncol = factor_base_size + nrow
     result = back_tracking(axb, afx, augmented, ncol, nrow, N)
@@ -454,7 +454,7 @@ def slave_main(comm: MPI.Comm) -> None:
                 idx = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
                 if status.Get_tag() != RESULTACKTAG:
                     return
-                # send real data with
+                # send real data with index
                 comm.send(axb_val, dest=0, tag=((idx << 2) + AXBTAG))
                 comm.send(a_fx_val, dest=0, tag=((idx << 2) + AFXTAG))
             start += length
