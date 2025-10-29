@@ -44,7 +44,7 @@ def cow_simulate(alloc_size_mb: int, modify_size_ratio: float ) -> None:
         n_modify = int(n_byte * modify_size_ratio)
 
         for i in range(0, n_modify, page_size):
-            arr[i] = (int(arr[i]) + 1) % 256
+            arr[i] = (arr[i]) ^ 255
         
 
         time.sleep(0.5)
